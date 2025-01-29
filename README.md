@@ -1,4 +1,4 @@
-# KozyDot's Beatmap Downloader
+# Kozydot's Discord Beatmap Downloader
 
 A Discord bot for downloading osu! beatmaps using the Nerinyan API.
 
@@ -9,16 +9,6 @@ A Discord bot for downloading osu! beatmaps using the Nerinyan API.
 - Rich embed messages with beatmap information
 - Rate limiting to prevent API abuse
 - Clean logging with timestamps
-
-## Project Structure
-
-```
-src/
-├── constants/      # Configuration constants
-├── services/       # Core business logic
-├── utils/         # Utility functions
-└── index.js       # Application entry point
-```
 
 ## Commands
 
