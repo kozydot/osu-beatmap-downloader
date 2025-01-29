@@ -1,0 +1,21 @@
+{
+  "name": "kozydot-beatmap-downloader",
+  "version": "1.0.0",
+  "description": "KozyDot's Discord bot for downloading osu! beatmaps",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "nodemon src/index.js",
+    "lint": "eslint src/**/*.js"
+  },
+  "dependencies": {
+    "axios": "^1.6.5",
+    "chalk": "^4.1.2",
+    "discord.js": "^14.14.1",
+    "dotenv": "^16.3.1"
+  },
+  "devDependencies": {
+    "eslint": "^8.56.0",
+    "nodemon": "^3.0.3"
+  }
+}
