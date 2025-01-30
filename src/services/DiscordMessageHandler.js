@@ -16,28 +16,99 @@ class DiscordMessageHandler {
     }
 
     /**
+     * Format duration from seconds to mm:ss
+     * @param {number} seconds - Duration in seconds
+     * @returns {string} Formatted duration
+     */
+    formatDuration(seconds) {
+        const minutes = Math.floor(seconds / 60);
+        const remainingSeconds = seconds % 60;
+        return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
+    }
+
+    /**
      * Create a Discord embed for a beatmap
      * @param {Object} beatmap - Beatmap data
      * @returns {EmbedBuilder} Discord embed object
      */
     createBeatmapEmbed(beatmap) {
         const downloadUrls = this.beatmapService.getDownloadUrls(beatmap.id);
+        const mainDiff = beatmap.beatmaps?.[0] || {};
+        
+        // Basic info
         const embed = new EmbedBuilder()
             .setColor(EMBED_COLOR)
             .setTitle(beatmap.title)
-            .setDescription(`**Artist:** ${beatmap.artist}\n**Creator:** ${beatmap.creator}`)
-            .addFields(
-                { name: 'BPM', value: `${beatmap.bpm}`, inline: true },
-                { name: 'Status', value: beatmap.status, inline: true },
-                { name: 'Favorite Count', value: `${beatmap.favourite_count}`, inline: true }
-            )
-            .addFields(
-                { 
-                    name: 'Download Links', 
-                    value: `[Download with Video](${downloadUrls.withVideo})\n[Download without Video](${downloadUrls.withoutVideo})`
-                }
-            )
-            .setFooter({ text: `Beatmap ID: ${beatmap.id} • ${BOT_NAME} ${BOT_VERSION}` });
+            .setDescription(
+                `**Artist:** ${beatmap.artist}\n` +
+                `**Creator:** ${beatmap.creator}\n` +
+                `**Genre:** ${beatmap.genre?.name || 'Unknown'}\n` +
+                `**Language:** ${beatmap.language?.name || 'Unknown'}`
+            );
+
+        // Map stats
+        embed.addFields(
+            { 
+                name: 'Length & BPM',
+                value: `${this.formatDuration(mainDiff.total_length)} • ${beatmap.bpm} BPM`,
+                inline: true
+            },
+            {
+                name: 'Status',
+                value: `${beatmap.status} (${(beatmap.rating || 0).toFixed(2)}★)`,
+                inline: true
+            },
+            {
+                name: '❤ Favorites',
+                value: `${beatmap.favourite_count}`,
+                inline: true
+            }
+        );
+
+        // Difficulty stats
+        embed.addFields(
+            {
+                name: 'Difficulty Stats',
+                value: 
+                    `CS: ${mainDiff.cs} • AR: ${mainDiff.ar} • HP: ${mainDiff.drain}\n` +
+                    `Star Rating: ${mainDiff.difficulty_rating}★\n` +
+                    `Max Combo: ${mainDiff.max_combo || 'Unknown'}`,
+                inline: false
+            }
+        );
+
+        // Play stats
+        embed.addFields(
+            {
+                name: 'Play Stats',
+                value: 
+                    `🎯 ${mainDiff.count_circles} circles • ➡️ ${mainDiff.count_sliders} sliders • 💫 ${mainDiff.count_spinners} spinners\n` +
+                    `▶️ ${mainDiff.playcount?.toLocaleString() || 0} plays • ✅ ${mainDiff.passcount?.toLocaleString() || 0} passes`,
+                inline: false
+            }
+        );
+
+        // Download links
+        embed.addFields(
+            { 
+                name: 'Download Links', 
+                value: `[Download with Video](${downloadUrls.withVideo})\n[Download without Video](${downloadUrls.withoutVideo})`
+            }
+        );
+
+        // Tags if available
+        if (beatmap.tags) {
+            embed.addFields({
+                name: 'Tags',
+                value: beatmap.tags.split(' ').slice(0, 8).join(', '),
+                inline: false
+            });
+        }
+
+        // Footer
+        embed.setFooter({ 
+            text: `Beatmap ID: ${beatmap.id} • ${BOT_NAME} ${BOT_VERSION}` 
+        });
 
         // Try to add background image
         try {
@@ -45,6 +116,11 @@ class DiscordMessageHandler {
             embed.setImage(previewUrl);
         } catch (error) {
             Logger.warning(`Failed to set preview image for beatmap ${beatmap.id}`);
+        }
+
+        // Add thumbnail if available
+        if (beatmap.covers?.card) {
+            embed.setThumbnail(beatmap.covers.card);
         }
 
         return embed;
